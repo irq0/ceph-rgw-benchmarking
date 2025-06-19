@@ -1,0 +1,11 @@
+{
+  "include": ["."],
+  "exclude": [
+    "**/build",
+    "**/dist",
+    "**/.venv",
+    "**/__pycache__"
+  ],
+  "reportMissingImports": false,
+  "typeCheckingMode": "basic"
+}

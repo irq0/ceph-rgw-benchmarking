@@ -1,0 +1,16 @@
+[project]
+name = "ceph-sse-kms-evaluation"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.38.39",
+    "python-barbicanclient>=7.1.0",
+    "python-keystoneclient>=5.6.0",
+]
+
+[dependency-groups]
+dev = [
+    "types-boto3>=1.38.39",
+]

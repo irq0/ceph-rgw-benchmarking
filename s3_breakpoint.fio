@@ -1,0 +1,43 @@
+[global]
+ioengine=http
+https=off
+http_mode=s3
+http_s3_keyid=${S3_ACCESS_KEY}
+http_s3_key=${S3_SECRET_KEY}
+http_host=127.0.0.1:8000
+http_verbose=0
+
+direct=1
+
+rw=randrw
+rwmixwrite=30
+
+group_reporting=1
+continue_on_error=none
+
+# S3 buckets
+directory=/rgw-sse-kms-test-7e81bcdd-17ff-4820-809d-660060d2e48a:/rgw-sse-kms-test-e23d9aac-24cb-4d33-83e1-4ffa0dadcbc3:/rgw-sse-kms-test-fca785be-1c62-4e31-8cc6-93a59980c7e6:/rgw-sse-kms-test-be4783bd-5493-4267-8760-ae95481bf39d:/rgw-sse-kms-test-e006d769-d3fe-4d66-85bc-9e81ed2b0499
+filename_format=fio.$filenum
+nrfiles=100  # files per bucket
+#size=1G
+filesize=2342
+bs=2342
+
+# [seed]
+# stonewall
+# rw=write
+# rate_iops=0
+# numjobs=5  # one job per directory/bucket
+# runtime=0
+
+[stage-10iops]
+stonewall
+time_based
+runtime=60
+# rate_iops=2  # !! per job
+numjobs=5  # !! must be >= directories
+file_service_type=pareto
+# file_service_type=zipf
+# file_service_type=random
+
+# ...
