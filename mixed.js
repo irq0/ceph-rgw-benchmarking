@@ -16,6 +16,7 @@ const BUCKETS = (__ENV.BUCKETS || "k6-benchmark-bucket")
   .split(";")
   .filter((s) => s !== "");
 const MODE = __ENV.MODE || "GET";
+const OBJECTS_FILE = __ENV.OBJECTS || "objects.json";
 const awsConfig = new AWSConfig({
   region: __ENV.AWS_REGION || "us-east-1",
   accessKeyId: __ENV.ACCESS_KEY || "test",
@@ -126,7 +127,7 @@ function s3_put_random_request(bucket) {
 }
 
 const objects = new SharedArray("some name", function () {
-  const f = JSON.parse(open("../objects.json"));
+  const f = JSON.parse(open(OBJECTS_FILE));
   return f;
 });
 
