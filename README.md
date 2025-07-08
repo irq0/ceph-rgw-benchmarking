@@ -1,6 +1,7 @@
 # Tools
 
 ## OpenStack
+
 ```
 openstack project create rgw-sse-kms-test
 openstack user create rgw --password rgw --domain default
@@ -25,7 +26,6 @@ rgw-sse-kms-test-7f3ec452-9044-4490-b777-d18a896cd580 rgw-sse-kms-test-53ae61ea-
 S3_ACCESS_KEY=asdf S3_SECRET_KEY="h7GhxuBLTrlhVUyxSPUKUV8r/2EI4ngqJxD7iBdBYLhwluN30JaT3Q==" ~/WORKSPACE/fio/fio s3_breakpoint.fio
 ```
 
-
 ## RGW
 
 vstart using OpenStack DevStack on 10.17.4.101
@@ -49,6 +49,7 @@ vstart using OpenStack DevStack on 10.17.4.101
 ```
 
 ## k6
+
 Run mixed.js in GET mode. Write results to json, dashboard and prometheus remote write.
 
 ```
