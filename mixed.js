@@ -47,28 +47,34 @@ export const options = {
   scenarios: {
     load_test: {
       executor: "ramping-arrival-rate",
-      startRate: 100,
+      startRate: 1,
       timeUnit: "1s",
       preAllocatedVUs: 10000,
       stages: [
+        { duration: "30s", target: 100 }, // ramp up
+        { duration: "3m", target: 100 },
+        { duration: "30s", target: 250 }, // ramp up
+        { duration: "3m", target: 250 },
+        { duration: "30s", target: 500 }, // ramp up
+        { duration: "3m", target: 500 },
+        { duration: "30s", target: 750 }, // ramp up
+        { duration: "3m", target: 750 },
         { duration: "30s", target: 1000 }, // ramp up
-        { duration: "1m", target: 1000 },
-        { duration: "30s", target: 2000 }, // ramp up
-        { duration: "1m", target: 2000 },
-        { duration: "30s", target: 3000 }, // ramp up
-        { duration: "1m", target: 3000 },
-        { duration: "30s", target: 4000 }, // ramp up
-        { duration: "1m", target: 4000 },
-        { duration: "30s", target: 5000 }, // ramp up
-        { duration: "1m", target: 5000 },
-        { duration: "30s", target: 6000 }, // ramp up
-        { duration: "1m", target: 6000 },
-        { duration: "30s", target: 7000 }, // ramp up
-        { duration: "1m", target: 7000 },
-        { duration: "30s", target: 8000 }, // ramp up. limit: janelane
-        { duration: "1m", target: 8000 },
-        { duration: "30s", target: 9000 }, // ramp up
-        { duration: "1m", target: 9000 },
+        { duration: "3m", target: 1000 },
+        // { duration: "30s", target: 3000 }, // ramp up
+        // { duration: "1m", target: 3000 },
+        // { duration: "30s", target: 4000 }, // ramp up
+        // { duration: "1m", target: 4000 },
+        // { duration: "30s", target: 5000 }, // ramp up
+        // { duration: "1m", target: 5000 },
+        // { duration: "30s", target: 6000 }, // ramp up
+        // { duration: "1m", target: 6000 },
+        // { duration: "30s", target: 7000 }, // ramp up
+        // { duration: "1m", target: 7000 },
+        // { duration: "30s", target: 8000 }, // ramp up. limit: janelane
+        // { duration: "1m", target: 8000 },
+        // { duration: "30s", target: 9000 }, // ramp up
+        // { duration: "1m", target: 9000 },
       ],
     },
   },
