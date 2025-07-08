@@ -1,6 +1,5 @@
 import { parseHTML } from "k6/html";
 import http from "k6/http";
-import exec from "k6/execution";
 import { check, fail, sleep } from "k6";
 import {
   randomString,
