@@ -1,19 +1,16 @@
 import { parseHTML } from "k6/html";
 import http from "k6/http";
-import { check, fail, sleep } from "k6";
+import { check, fail } from "k6";
 import {
-  randomString,
   randomItem,
 } from "https://jslib.k6.io/k6-utils/1.2.0/index.js";
-import { URL } from "https://jslib.k6.io/url/1.0.0/index.js";
-import { URLSearchParams } from "https://jslib.k6.io/url/1.0.0/index.js";
 import * as k6crypto from "k6/crypto";
 import {
   AWSConfig,
   SignatureV4,
   Endpoint,
 } from "https://jslib.k6.io/aws/0.13.0/signature.js";
-import { Counter, Gauge } from "k6/metrics";
+import { Gauge } from "k6/metrics";
 import { SharedArray } from "k6/data";
 
 const BASE_URL = __ENV.BASE_URL || "http://localhost:8000";
@@ -26,7 +23,6 @@ const awsConfig = new AWSConfig({
 });
 
 const initialObjects = new Gauge("initial_objects");
-const seedObjectsCreated = new Counter("seed_objects_created");
 const benchmarkBuckets = new Gauge("buckets");
 
 function randomBytes(len) {
@@ -143,12 +139,12 @@ export function setup() {
       return el.find("Name").contents().text();
     });
   check(list_buckets, {
-    "status is 200": (res) => list_buckets.status === 200,
+    "status is 200": (res) => res.status === 200,
   });
   BUCKETS.forEach((bucket) => {
     if (
-      !check(BUCKETS, {
-        "benchmark bucket exists": (res) => buckets.includes(bucket),
+      !check(buckets, {
+        "benchmark bucket exists": (res) => res.includes(bucket),
       })
     ) {
       fail(`benchmark bucket ${bucket} does not exists`);
@@ -158,7 +154,7 @@ export function setup() {
   initialObjects.add(objects.length);
 }
 
-export default function (data) {
+export default function () {
   if (MODE == "GET") {
     if (objects.length === 0) {
       fail("No objects available for GET requests.");
