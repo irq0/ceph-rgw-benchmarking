@@ -121,34 +121,6 @@ function s3_req(method, path, headers, query = {}, body = null) {
   return http.request(req.method, req.url, body, req.params);
 }
 
-function s3_list_objects(bucket) {
-  let query = { "list-type": "2", "max-keys": "1000" };
-  let continuation = {};
-  let objects = [];
-  while (true) {
-    const list_objects = s3_req("GET", `/${bucket}`, {}, query);
-    if (
-      !check(list_objects, { "status is 200": (res) => res.status === 200 })
-    ) {
-      fail(`Failed to list objects in bucket ${bucket}`);
-    }
-    const doc = parseHTML(list_objects.body).find("ListBucketResult");
-    const page_objects = doc.children("Contents").map((_, el) => {
-      const key = el.find("Key").contents().text();
-      return { bucket, key };
-    });
-    objects.push(...page_objects);
-    const truncated = doc.find("IsTruncated").contents().text() == "true";
-    const next = doc.find("NextContinuationToken").contents().text();
-    if (truncated) {
-      query["continuation-token"] = next;
-    } else {
-      break;
-    }
-  }
-  return objects;
-}
-
 function s3_put_random_request(bucket) {
   const key = "seed-" + crypto.randomUUID();
   const result = {
@@ -156,28 +128,6 @@ function s3_put_random_request(bucket) {
     req: create_s3_req("PUT", `/${bucket}/${key}`, {}, RANDOM_BUFFER),
   };
   return result;
-}
-
-function seed(object_count, buckets) {
-  console.log(
-    `Warning: Seeding ${object_count} objects accross ${buckets.length} buckets`,
-  );
-  let requests = [];
-  let keys = [];
-  for (let i = 0; i < object_count; i++) {
-    const bucket = buckets[i % buckets.length];
-    const req = s3_put_random_request(bucket);
-    keys.push({ bucket, key: req.key });
-    requests.push(req.req);
-  }
-  const responses = http.batch(requests);
-  responses.forEach((res, idx) => {
-    if (!check(res, { "status is 200": (res) => res.status === 200 })) {
-      fail(`seed obj PUT failed: ${res.status}`);
-    }
-    seedObjectsCreated.add(1);
-  });
-  return keys;
 }
 
 const objects = new SharedArray("some name", function () {
