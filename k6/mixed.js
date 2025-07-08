@@ -17,7 +17,6 @@ import { SharedArray } from 'k6/data';
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8000';
 const BUCKETS = (__ENV.BUCKETS || "k6-benchmark-bucket").split(";");
 const MODE = __ENV.MODE || "GET";
-const INITIAL_OBJECTS = Number(__ENV.OBJECTS) || 0;
 const awsConfig = new AWSConfig({
     region: __ENV.AWS_REGION || "us-east-1",
     accessKeyId: __ENV.ACCESS_KEY || 'test',
@@ -164,6 +163,12 @@ function seed(object_count, buckets) {
     return keys;
 }
 
+
+const objects = new SharedArray('some name', function () {
+  const f = JSON.parse(open('../objects.json'));
+  return f;
+});
+
 export function setup() {
     const list_buckets = s3_req("GET", "/", {});
     const buckets = parseHTML(list_buckets.body).find('Buckets').children().map((_, el) => {
@@ -179,29 +184,17 @@ export function setup() {
             fail(`benchmark bucket ${bucket} does not exists`);
         }
     });
-    let objs = [];
-    BUCKETS.forEach(bucket => {
-        objs.push(...s3_list_objects(bucket));
-    });
     benchmarkBuckets.add(BUCKETS.length);
-    initialObjects.add(objs.length);
-    if (objs.length < INITIAL_OBJECTS) {
-        const new_objs = seed(INITIAL_OBJECTS - objs.length, BUCKETS);
-        objs.push(...new_objs);
-    }
-    return {
-	objects: objs
-    };
+    initialObjects.add(objects.length);
 }
-
 
 export default function (data) {
     if (MODE == "GET") {
-        if (data.objects.length === 0) {
+        if (objects.length === 0) {
             fail("No objects available for GET requests.");
         }
         const item = randomItem(objects);
-        const res = s3_req("GET", `/${item.bucket}/${item.key}`, {});
+        const res = s3_req("GET", `/${item[0]}/${item[1]}`, {});
         check(res, {
             "status is 200": (res) => res.status === 200,
         });
