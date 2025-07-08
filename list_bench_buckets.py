@@ -21,7 +21,7 @@ def main():
         print('Usage: ./script.py "bucket1;bucket2;bucket3"', file=sys.stderr)
         sys.exit(1)
 
-    buckets = sys.argv[1].split(";")
+    buckets = [bucket for bucket in sys.argv[1].split(";") if bucket]
 
     s3 = boto3.client(
         "s3",

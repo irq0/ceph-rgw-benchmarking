@@ -12,7 +12,9 @@ import { Gauge } from "k6/metrics";
 import { SharedArray } from "k6/data";
 
 const BASE_URL = __ENV.BASE_URL || "http://localhost:8000";
-const BUCKETS = (__ENV.BUCKETS || "k6-benchmark-bucket").split(";");
+const BUCKETS = (__ENV.BUCKETS || "k6-benchmark-bucket")
+  .split(";")
+  .filter((s) => s !== "");
 const MODE = __ENV.MODE || "GET";
 const awsConfig = new AWSConfig({
   region: __ENV.AWS_REGION || "us-east-1",
