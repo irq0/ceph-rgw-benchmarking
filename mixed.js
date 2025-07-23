@@ -119,6 +119,7 @@ export const options = {
     "count",
   ],
   summaryTimeUnit: "ms",
+  systemTags: ["status", "method", "url", "error_code", "error", "ip"],
 };
 
 function create_s3_req(method, path, headers, query = {}, body = null) {
