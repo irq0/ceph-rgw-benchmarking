@@ -75,20 +75,44 @@ export const options = {
         { duration: "3m", target: 750 },
         { duration: "30s", target: 1000 }, // ramp up
         { duration: "3m", target: 1000 },
-        // { duration: "30s", target: 3000 }, // ramp up
-        // { duration: "1m", target: 3000 },
-        // { duration: "30s", target: 4000 }, // ramp up
-        // { duration: "1m", target: 4000 },
-        // { duration: "30s", target: 5000 }, // ramp up
-        // { duration: "1m", target: 5000 },
-        // { duration: "30s", target: 6000 }, // ramp up
-        // { duration: "1m", target: 6000 },
-        // { duration: "30s", target: 7000 }, // ramp up
-        // { duration: "1m", target: 7000 },
-        // { duration: "30s", target: 8000 }, // ramp up. limit: janelane
-        // { duration: "1m", target: 8000 },
-        // { duration: "30s", target: 9000 }, // ramp up
-        // { duration: "1m", target: 9000 },
+        { duration: "30s", target: 3000 }, // ramp up
+        { duration: "1m", target: 3000 },
+        { duration: "30s", target: 4000 }, // ramp up
+        { duration: "1m", target: 4000 },
+        { duration: "30s", target: 5000 }, // ramp up
+        { duration: "1m", target: 5000 },
+        { duration: "30s", target: 6000 }, // ramp up
+        { duration: "1m", target: 6000 },
+        { duration: "30s", target: 7000 }, // ramp up
+        { duration: "1m", target: 7000 },
+        { duration: "30s", target: 8000 }, // ramp up. limit: janelane
+        { duration: "1m", target: 8000 },
+        { duration: "30s", target: 9000 }, // ramp up
+        { duration: "1m", target: 9000 },
+
+        // large scale
+        // { duration: "1m", target: 1000 }, // ramp up
+        // { duration: "5m", target: 1000 },
+        // { duration: "1m", target: 5000 }, // ramp up
+        // { duration: "5m", target: 5000 },
+        // { duration: "1m", target: 10000 }, // ramp up
+        // { duration: "5m", target: 10000 },
+        // { duration: "1m", target: 50000 }, // ramp up
+        // { duration: "5m", target: 50000 },
+        // { duration: "1m", target: 100000 }, // ramp up
+        // { duration: "5m", target: 100000 },
+        // { duration: "1m", target: 150000 }, // ramp up
+        // { duration: "5m", target: 150000 },
+        // { duration: "1m", target: 200000 }, // ramp up
+        // { duration: "5m", target: 200000 },
+        // { duration: "1m", target: 250000 }, // ramp up
+        // { duration: "5m", target: 250000 },
+        // { duration: "1m", target: 300000 }, // ramp up
+        // { duration: "5m", target: 300000 },
+        // { duration: "1m", target: 350000 }, // ramp up
+        // { duration: "5m", target: 350000 },
+        // { duration: "1m", target: 400000 }, // ramp up
+        // { duration: "5m", target: 400000 },
       ],
     },
   },
