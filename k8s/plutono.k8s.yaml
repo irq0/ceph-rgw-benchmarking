@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: plutono-datasources
+data:
+  prometheus.yaml: |-
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      access: proxy
+      url: http://prom-ml:9090
+      isDefault: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plutono
+  labels:
+    app: plutono
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plutono
+  template:
+    metadata:
+      labels:
+        app: plutono
+    spec:
+      containers:
+        - name: plutono
+          image: ghcr.io/credativ/plutono:latest
+          ports:
+            - containerPort: 3000
+              name: http
+          volumeMounts:
+            - name: plutono-datasources
+              mountPath: /etc/plutono/provisioning/datasources
+      volumes:
+        - name: plutono-datasources
+          configMap:
+            name: plutono-datasources

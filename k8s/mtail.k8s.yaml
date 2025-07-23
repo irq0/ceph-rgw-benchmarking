@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: mtail
+  labels:
+    app: mtail
+spec:
+  selector:
+    matchLabels:
+      app: mtail
+  template:
+    metadata:
+      labels:
+        app: mtail
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3903"
+    spec:
+      containers:
+        - name: mtail
+          image: ghcr.io/google/mtail:latest
+          args:
+            - "--progs"
+            - "/etc/mtail"
+            - "--logs"
+            - "/var/log/ceph/ceph-client.rgw*"
+          ports:
+            - containerPort: 3903
+              name: metrics
+          volumeMounts:
+            - name: mtail-programs
+              mountPath: /etc/mtail
+            - name: rook-ceph-log
+              mountPath: /var/log/ceph
+              readOnly: true
+      volumes:
+        - name: mtail-programs
+          configMap:
+            name: mtail-config
+        - name: rook-ceph-log
+          hostPath:
+            path: /var/lib/rook/rook-ceph/log

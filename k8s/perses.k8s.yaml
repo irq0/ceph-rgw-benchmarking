@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: perses
+  labels:
+    app: perses
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: perses
+  template:
+    metadata:
+      labels:
+        app: perses
+    spec:
+      containers:
+        - name: perses
+          image: persesdev/perses:latest
+          ports:
+            - containerPort: 8080
+              name: http
