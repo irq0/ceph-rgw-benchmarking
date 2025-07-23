@@ -24,8 +24,8 @@ const OBJECTS_FILE = __ENV.OBJECTS || "objects.json";
 const RESULTS_BUCKET = __ENV.RESULTS_BUCKET || false;
 const awsConfig = new AWSConfig({
   region: __ENV.AWS_REGION || "us-east-1",
-  accessKeyId: __ENV.ACCESS_KEY || "test",
-  secretAccessKey: __ENV.SECRET_KEY || "test",
+  accessKeyId: __ENV.AWS_ACCESS_KEY || "asdfasdfasdfasdfasdf",
+  secretAccessKey: __ENV.AWS_SECRET_KEY || "asdfasdfasdfasdfasdf",
 });
 
 const initialObjects = new Gauge("initial_objects");
