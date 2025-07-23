@@ -1,0 +1,48 @@
+#!/bin/bash
+
+export ACCESS="askl;dfjkladsfjlkasdjf"
+export SECRET="asdkjfhlklasdjfklasd"
+export S3_ACCESS="$ACCESS"
+export S3_SECRET="$SECRET"
+export ACCESS_KEY="$ACCESS"
+export SECRET_KEY="$SECRET"
+export AWS_ACCESS_KEY="$ACCESS"
+export AWS_SECRET_KEY="$SECRET"
+
+export NAMESPACE="bench"
+
+export S3_BASEURL="http://localhost:8000"
+export S3_RESOURCES_BUCKET="ml-bench-resources"
+
+s3 () {
+   s3cmd --access_key "$ACCESS" --secret_key "$SECRET" \
+	 --signature-v2 \
+	 --host="$S3_BASEURL" \
+	 --host-bucket="$S3_BASEURL/%(bucket)" \
+	 $@
+}
+
+deploy_k6 () {
+   curl https://raw.githubusercontent.com/grafana/k6-operator/main/bundle.yaml | kubectl apply -f -
+}
+
+run_bench () {
+   local mode="$1"
+   local NOW="$(date -u +"%Y-%m-%dt%H%M%Sz")"
+   yq '.metadata.name = ("$MODE-$NOW" | envsubst) | (.spec.arguments |= ( sub("(testid=)\w+", "${1}$$MODE-$$NOW") | envsubst)  )' testrun-templates/$MODE.yaml \
+     | kubectl apply --namespace "$NAMESPACE"  -f-
+}
+
+# run_local () {
+#    K6_PROMETHEUS_RW_SERVER_URL=http://localhost:9090/api/v1/write K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true VUS=100 BUCKETS=ml-bench-4k-plain BASE_URL=$S3_BASEURL MODE=GET k6 run mixed.js --tag testid=foo --out experimental-prometheus-rw
+# }
+
+update_script () {
+   s3 put mixed.js "s3://$S3_RESOURCES_BUCKET/mixed.js"
+}
+
+update_testrun_config () {
+    yq '.data.base_url = ("$S3_BASEURL" | envsubst) | .data.resources_bucket = ("$S3_RESOURCES_BUCKET" | envsubst)' \
+       testrun-templates/common.configmap.k8s.yaml \
+	| kubectl apply --namespace "$NAMESPACE" -f -
+}
