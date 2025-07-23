@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k6-testrun-config
+data:
+  base_url: http://localhost:8000
+  buckets: ml-bench-4k-plain
+  resources_bucket: ml-bench-resources

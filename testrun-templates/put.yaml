@@ -1,0 +1,84 @@
+apiVersion: k6.io/v1alpha1
+kind: TestRun
+metadata:
+  name: mixed-put
+spec:
+  parallelism: 15
+  separate: true
+  script:
+    localFile: /test/mixed.js
+  arguments: --tag testid=k6put --summary-mode=full --out csv=test_results.csv --out experimental-prometheus-rw
+  runner:
+    image: ghcr.io/grafana/k6-operator:latest-runner
+    initContainers:
+      - image: amazon/aws-cli
+        command:
+          - sh
+          - -c
+          - |
+            aws --endpoint-url "$BASE_URL" s3 cp "s3://$BUCKET/mixed.js" /test/mixed.js
+            echo "[]" > /test/objects.json
+            ls -la /test
+        volumeMounts:
+          - name: test-data
+            mountPath: /test
+        env:
+          - name: BASE_URL
+            valueFrom:
+              configMapKeyRef:
+                name: k6-testrun-config
+                key: base_url
+          - name: BUCKET
+            valueFrom:
+              configMapKeyRef:
+                name: k6-testrun-config
+                key: resources_bucket
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: k6-testrun-creds
+                key: secret
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: k6-testrun-creds
+                key: access
+    volumes:
+      - name: test-data
+        emptyDir: {}
+    volumeMounts:
+      - name: test-data
+        mountPath: /test
+    env:
+      - name: BASE_URL
+        valueFrom:
+          configMapKeyRef:
+            name: k6-testrun-config
+            key: base_url
+      - name: BUCKETS
+        valueFrom:
+          configMapKeyRef:
+            name: k6-testrun-config
+            key: buckets
+      - name: MODE
+        value: "PUT"
+      - name: OBJECT_SIZE
+        value: "4096"
+      - name: VUS
+        value: "500000"
+      - name: OBJECTS
+        value: objects.json
+      - name: K6_PROMETHEUS_RW_SERVER_URL
+        value: "http://prom-ml:9090/api/v1/write"
+      - name: K6_PROMETHEUS_RW_TREND_STATS
+        value: "min,avg,med,p(90),p(95),p(99),p(99.9),max"
+      - name: AWS_SECRET_KEY
+        valueFrom:
+          secretKeyRef:
+            name: k6-testrun-creds
+            key: secret
+      - name: AWS_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: k6-testrun-creds
+            key: access
