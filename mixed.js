@@ -17,6 +17,7 @@ const BUCKETS = (__ENV.BUCKETS || "k6-benchmark-bucket")
   .filter((s) => s !== "");
 const MODE = __ENV.MODE || "GET";
 const OBJECTS_FILE = __ENV.OBJECTS || "objects.json";
+const RESULTS_BUCKET = __ENV.RESULTS_BUCKET || false;
 const awsConfig = new AWSConfig({
   region: __ENV.AWS_REGION || "us-east-1",
   accessKeyId: __ENV.ACCESS_KEY || "test",
@@ -178,5 +179,22 @@ export default function () {
     check(resp, {
       "status is 200": (res) => res.status === 200,
     });
+  }
+}
+
+export function handleSummary(data) {
+  if (RESULTS_BUCKET) {
+    const key = `result-${options.tags.testid}-${crypto.randomUUID()}.json`;
+    const resp = s3_req(
+      "PUT",
+      `/${RESULTS_BUCKET}/${key}`,
+      {},
+      {},
+      JSON.stringify(data),
+    );
+    if (resp.status != 200) {
+      console.error("Could not send summary, got status " + resp.status);
+    }
+    console.log(`wrote results to ${RESULTS_BUCKET}/${key}`);
   }
 }
