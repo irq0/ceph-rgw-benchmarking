@@ -30,7 +30,6 @@ const awsConfig = new AWSConfig({
   secretAccessKey: __ENV.AWS_SECRET_KEY || "asdfasdfasdfasdfasdf",
 });
 
-const initialObjects = new Gauge("initial_objects");
 const benchmarkBuckets = new Gauge("buckets");
 const putObjectSize = new Gauge("put_object_size");
 const httpServerErrors = new Counter("http_server_errors");
@@ -41,6 +40,11 @@ function randomBytes(len) {
   return k6crypto.randomBytes(len);
 }
 
+const objects = new SharedArray("objects", function () {
+  const result = JSON.parse(open(OBJECTS_FILE));
+  console.log(`Object pool size: ${result.length}`);
+  return result;
+});
 
 const signature = new SignatureV4({
   service: "s3",
@@ -167,23 +171,25 @@ function s3_put_random_request(bucket, buffer) {
   return result;
 }
 
-const objects = new SharedArray("some name", function () {
-  const f = JSON.parse(open(OBJECTS_FILE));
-  return f;
-});
 const buffer = randomBytes(OBJ_SIZE);
 
 export function setup() {
-  const list_buckets = s3_req("GET", "/", {});
+  console.log("Access Key:", __ENV.AWS_ACCESS_KEY || "not set");
+  console.log("Mode:", __ENV.MODE || "not set");
+  const list_buckets = s3_req("GET", "/", {}, { "max-buckets": "1000" }, "");
+  if (
+    !check(list_buckets, {
+      "status is 200": (res) => res.status === 200,
+    })
+  ) {
+    fail("list bucket failed");
+  }
   const buckets = parseHTML(list_buckets.body)
     .find("Buckets")
     .children()
     .map((_, el) => {
       return el.find("Name").contents().text();
     });
-  check(list_buckets, {
-    "status is 200": (res) => res.status === 200,
-  });
   BUCKETS.forEach((bucket) => {
     if (
       !check(buckets, {
@@ -194,7 +200,6 @@ export function setup() {
     }
   });
   benchmarkBuckets.add(BUCKETS.length);
-  initialObjects.add(objects.length);
   putObjectSize.add(buffer.byteLength);
 }
 
