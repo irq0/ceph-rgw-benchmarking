@@ -6,13 +6,14 @@ import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 S3_BASEURL = os.getenv("S3_BASEURL") or "http://localhost:8000"
-S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
-S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
+S3_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
+S3_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
+LIMIT = int(os.getenv("S3_LIST_LIMIT") or 2000000)
 
 
 def list_bucket_objects(s3_client, bucket_name):
-    response = s3_client.list_objects_v2(Bucket=bucket_name)
-    objects = [obj["Key"] for obj in response.get("Contents", [])]
+    bucket = s3_client.Bucket(bucket_name)
+    objects = (obj.key for obj in bucket.objects.limit(LIMIT))
     return [(bucket_name, obj) for obj in objects]
 
 
@@ -23,7 +24,7 @@ def main():
 
     buckets = [bucket for bucket in sys.argv[1].split(";") if bucket]
 
-    s3 = boto3.client(
+    s3 = boto3.resource(
         "s3",
         endpoint_url=S3_BASEURL,
         aws_access_key_id=S3_ACCESS_KEY,
