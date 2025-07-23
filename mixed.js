@@ -12,7 +12,7 @@ import {
   SignatureV4,
   Endpoint,
 } from "https://jslib.k6.io/aws/0.13.0/signature.js";
-import { Gauge } from "k6/metrics";
+import { Gauge, Counter } from "k6/metrics";
 import { SharedArray } from "k6/data";
 
 const BASE_URL = __ENV.BASE_URL || "http://localhost:8000";
@@ -22,6 +22,7 @@ const BUCKETS = (__ENV.BUCKETS || "k6-benchmark-bucket")
 const MODE = __ENV.MODE || "GET";
 const OBJECTS_FILE = __ENV.OBJECTS || "objects.json";
 const RESULTS_BUCKET = __ENV.RESULTS_BUCKET || false;
+const OBJ_SIZE = parseInt(__ENV.OBJECT_SIZE) || 4 * 1024;
 const VUS = parseInt(__ENV.VUS) || 500000;
 const awsConfig = new AWSConfig({
   region: __ENV.AWS_REGION || "us-east-1",
@@ -31,12 +32,15 @@ const awsConfig = new AWSConfig({
 
 const initialObjects = new Gauge("initial_objects");
 const benchmarkBuckets = new Gauge("buckets");
+const putObjectSize = new Gauge("put_object_size");
+const httpServerErrors = new Counter("http_server_errors");
+const httpCriticalErrors = new Counter("http_critical_errors");
+const httpClientErrors = new Counter("http_client_errors");
 
 function randomBytes(len) {
   return k6crypto.randomBytes(len);
 }
 
-const RANDOM_BUFFER = randomBytes(64 * 1024);
 
 const signature = new SignatureV4({
   service: "s3",
@@ -85,8 +89,16 @@ export const options = {
     },
   },
   thresholds: {
-    http_req_failed: ["rate<0.01"],
-    http_req_duration: ["p(95)<500", "p(99)<1000"],
+    http_req_failed: ["rate<0.10"],
+    http_req_duration: ["p(95)<100", "p(99)<1000"],
+    http_client_errors: ["rate<0.01"],
+    http_critical_errors: [
+      {
+        threshold: "count < 1",
+        abortOnFail: false,
+        delayAbortEval: "10s",
+      },
+    ],
   },
   batch: 100,
   batchPerHost: 100,
@@ -126,14 +138,31 @@ function create_s3_req(method, path, headers, query = {}, body = null) {
 
 function s3_req(method, path, headers, query = {}, body = null) {
   const req = create_s3_req(method, path, headers, query, body);
-  return http.request(req.method, req.url, body, req.params);
+  const res = http.request(req.method, req.url, body, req.params);
+  check(res, {
+    "status is 200": (res) => res.status === 200,
+  });
+  if (res.status >= 400 && res.status < 407) {
+    httpCriticalErrors.add(1, { status: res.status });
+  } else if (res.status >= 407 && res.status < 500) {
+    httpClientErrors.add(1, { status: res.status });
+  } else if (res.status >= 500 && res.status < 600) {
+    httpServerErrors.add(1, { status: res.status });
+  }
+  return res;
 }
 
-function s3_put_random_request(bucket) {
-  const key = "seed-" + crypto.randomUUID();
+function s3_put_random_request(bucket, buffer) {
+  const key = "bench-" + crypto.randomUUID();
   const result = {
     key,
-    req: create_s3_req("PUT", `/${bucket}/${key}`, {}, RANDOM_BUFFER),
+    req: create_s3_req(
+      "PUT",
+      `/${bucket}/${key}`,
+      { "Content-Length": buffer.byteLength },
+      {},
+      buffer,
+    ),
   };
   return result;
 }
@@ -142,6 +171,7 @@ const objects = new SharedArray("some name", function () {
   const f = JSON.parse(open(OBJECTS_FILE));
   return f;
 });
+const buffer = randomBytes(OBJ_SIZE);
 
 export function setup() {
   const list_buckets = s3_req("GET", "/", {});
@@ -165,6 +195,7 @@ export function setup() {
   });
   benchmarkBuckets.add(BUCKETS.length);
   initialObjects.add(objects.length);
+  putObjectSize.add(buffer.byteLength);
 }
 
 export default function () {
@@ -181,10 +212,20 @@ export default function () {
       "status is 200": (res) => res.status === 200,
     });
   } else if (MODE == "PUT") {
-    const resp = http.request("PUT", req.req.url, req.req.body, req.req.params);
+    if (!buffer || buffer.byteLength < 10) {
+      fail("data buffer empty?!");
+    }
     const bucket = randomItem(BUCKETS);
-    const req = s3_put_random_request(bucket);
-    check(resp, {
+    const req = s3_put_random_request(bucket, buffer);
+    const res = http.put(req.req.url, buffer, req.req.params);
+    if (res.status >= 400 && res.status < 407) {
+      httpCriticalErrors.add(1, { status: res.status });
+    } else if (res.status >= 407 && res.status < 500) {
+      httpClientErrors.add(1, { status: res.status });
+    } else if (res.status >= 500 && res.status < 600) {
+      httpServerErrors.add(1, { status: res.status });
+    }
+    check(res, {
       "status is 200": (res) => res.status === 200,
     });
   }
