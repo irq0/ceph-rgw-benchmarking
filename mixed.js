@@ -22,6 +22,7 @@ const BUCKETS = (__ENV.BUCKETS || "k6-benchmark-bucket")
 const MODE = __ENV.MODE || "GET";
 const OBJECTS_FILE = __ENV.OBJECTS || "objects.json";
 const RESULTS_BUCKET = __ENV.RESULTS_BUCKET || false;
+const VUS = parseInt(__ENV.VUS) || 500000;
 const awsConfig = new AWSConfig({
   region: __ENV.AWS_REGION || "us-east-1",
   accessKeyId: __ENV.AWS_ACCESS_KEY || "asdfasdfasdfasdfasdf",
@@ -54,7 +55,7 @@ export const options = {
       executor: "ramping-arrival-rate",
       startRate: 1,
       timeUnit: "1s",
-      preAllocatedVUs: 10000,
+      preAllocatedVUs: VUS,
       stages: [
         { duration: "30s", target: 100 }, // ramp up
         { duration: "3m", target: 100 },
