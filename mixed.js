@@ -119,6 +119,7 @@ export const options = {
     "count",
   ],
   summaryTimeUnit: "ms",
+  discardResponseBodies: false, // setup checks will otherwise fail!
   systemTags: ["status", "method", "url", "error_code", "error", "ip"],
 };
 
