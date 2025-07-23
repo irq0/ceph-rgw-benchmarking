@@ -61,7 +61,6 @@ export const options = {
   scenarios: {
     load_test: {
       executor: "ramping-arrival-rate",
-      startRate: 1,
       timeUnit: "1s",
       preAllocatedVUs: VUS,
       stages: [
