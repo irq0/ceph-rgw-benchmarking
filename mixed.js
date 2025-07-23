@@ -1,7 +1,11 @@
 import { parseHTML } from "k6/html";
 import http from "k6/http";
 import { check, fail } from "k6";
-import { randomItem } from "https://jslib.k6.io/k6-utils/1.2.0/index.js";
+import {
+  randomItem,
+  tagWithCurrentStageIndex,
+  tagWithCurrentStageProfile,
+} from "https://jslib.k6.io/k6-utils/1.3.0/index.js";
 import * as k6crypto from "k6/crypto";
 import {
   AWSConfig,
@@ -163,6 +167,9 @@ export function setup() {
 }
 
 export default function () {
+  tagWithCurrentStageIndex();
+  tagWithCurrentStageProfile();
+
   if (MODE == "GET") {
     if (objects.length === 0) {
       fail("No objects available for GET requests.");
